@@ -231,7 +231,20 @@ export class SqljsDriver extends AbstractSqliteDriver {
      * @param metadata
      * @param insertResult
      */
-    createGeneratedMap(metadata: EntityMetadata, insertResult: any) {
+    createGeneratedMap(metadata: EntityMetadata, insertResult: any, entityIndex: number, entityNum: number) {
+        if (!insertResult && metadata.generatedColumns.some((c) => c.isPrimary && c.generationStrategy === "increment")) {
+            try {
+                const res = this.databaseConnection.exec("SELECT last_insert_rowid()")
+                this.dataSource.logger.logQuery("SELECT last_insert_rowid()")
+                insertResult = Number(res[0].values[0][0])
+            } catch (e) {
+                this.dataSource.logger.logQueryError(e, "SELECT last_insert_rowid()", [])
+            }
+        }
+        return super.createGeneratedMap(metadata, insertResult, entityIndex, entityNum)
+    }
+
+    private _unusedCreateGeneratedMap(metadata: EntityMetadata, insertResult: any) {
         const generatedMap = metadata.generatedColumns.reduce(
             (map, generatedColumn) => {
                 // seems to be the only way to get the inserted id, see https://github.com/kripken/sql.js/issues/77
