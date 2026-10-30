@@ -49,7 +49,10 @@ export class SubjectTopologicalSorter {
         // junction subjects are subjects without entity and database entity set
         if (direction === "delete") {
             const junctionSubjects = this.subjects.filter(
-                (subject) => !subject.entity && !subject.databaseEntity,
+                (subject) =>
+                    !subject.entity &&
+                    !subject.databaseEntity &&
+                    !subject.mustBeRemoved,
             )
             sortedSubjects.push(...junctionSubjects)
             this.removeAlreadySorted(junctionSubjects)
